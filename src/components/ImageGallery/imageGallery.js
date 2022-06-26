@@ -1,3 +1,4 @@
+
 import PropTypes from 'prop-types';
 import { ImageGalleryItem } from '.';
 import s from './ImageGallery.module.css';

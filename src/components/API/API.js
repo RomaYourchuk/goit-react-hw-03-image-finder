@@ -6,7 +6,7 @@ const ServiceAPI = (q, page) => {
       key: 'e900ddd99edc3affd146f1905e638fd1',
       image_type: 'photo',
       orientation: 'horizontal',
-      safesearch: true,
+      safesearch: false,
       per_page: 12,
       q,
       page,
