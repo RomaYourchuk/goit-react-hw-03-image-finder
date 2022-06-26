@@ -1,56 +1,54 @@
-import PropTypes from 'prop-types';
-import { Component } from 'react';
 import s from './Searchbar.module.css';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-export class Searchbar extends Component {
-  static defaultProps = { onSubmit: null };
-
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-  };
+export default class Searchbar extends Component {
   state = {
     searchQuery: '',
   };
-
-  handleInputChange = e => {
-    const { name, value } = e.currentTarget;
-    this.setState({ [name]: value });
+  static propTypes = {
+    onSubmitClick: PropTypes.func.isRequired,
+    children: PropTypes.node,
+    'aria-label': PropTypes.string.isRequired,
   };
-
-  handleSubmit = e => {
-    e.preventDefault();
-
-    const { searchQuery } = this.state;
-    const normalizeSearchQuery = searchQuery.trim().toLowerCase();
-
-    if (!normalizeSearchQuery) {
-      return;
+  handleSubjectChange = event => {
+    this.setState({
+      searchQuery: event.currentTarget.value.toLowerCase(),
+    });
+  };
+  handleSubmit = event => {
+    event.preventDefault();
+    if (this.state.searchQuery.trim() === '') {
+      toast.error('Enter what you want to find ', {
+        position: 'top-right',
+        pauseOnHover: true,
+        draggable: false,
+        progress: undefined,
+      });
     }
-
-    this.props.onSubmit(normalizeSearchQuery);
+    this.props.onSubmitClick(this.state.searchQuery);
     this.setState({ searchQuery: '' });
   };
-
   render() {
+    const { children, onSubmitClick, ...allyProps } = this.props;
     return (
-      <header className={s.Searchbar}>
+      <div className={s.Searchbar}>
         <form className={s.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={s.SearchFormButton}>
-            <span className={s.SearchFormButtonLabel}>Search</span>
-          </button>
-
           <input
             className={s.SearchFormInput}
             type="text"
             name="searchQuery"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
             value={this.state.searchQuery}
-            onChange={this.handleInputChange}
+            onChange={this.handleSubjectChange}
+            placeholder="Search images and photos"
           />
+          <button className={s.SearchFormButton} type="submit" {...allyProps}>
+            {children}
+          </button>
         </form>
-      </header>
+      </div>
     );
   }
 }

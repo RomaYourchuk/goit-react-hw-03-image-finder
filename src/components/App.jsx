@@ -1,137 +1,69 @@
-import { Component } from 'react';
-import { Watch } from 'react-loader-spinner';
-import { ServiceAPI } from './API';
-import { ImageGallery } from './ImageGallery';
-import s from './ImageGallery/ImageGallery.module.css';
-import { Searchbar } from './Searchbar';
-import { Button } from './Button';
-import { Modal } from './Modal';
+import React, { Component } from 'react';
+import s from './App';
+import Modal from 'components/Modal';
+import Searchbar from 'components/Searchbar';
+import ImageGallery from './ImageGallery/imageGallery';
+import Button from './Button/Button';
 
-export class App extends Component {
+import { ReactComponent as SearchIcon } from '../Images/search.svg';
+import { ToastContainer } from 'react-toastify';
+
+export default class App extends Component {
   state = {
-    query: '',
-    data: [],
-    page: 1,
-    error: null,
-    status: 'idle',
     showModal: false,
-    imgId: null,
-    total: 0,
+    activeImgURL: '',
+    activeImgAlt: '',
+    searchQuery: '',
+    page: 1,
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.query !== prevState.query) {
-      this.setState({ status: 'pending', data: [], page: 1 }, this.getPicture);
-    }
-    if (this.state.page !== prevState.page && this.state.page !== 1) {
-      this.setState({ status: 'pending' }, this.getPicture);
-    }
-  }
-
-  getPicture = () => {
-    const { query } = this.state;
-    const { page } = this.state;
-    ServiceAPI(query, page)
-      .then(this.dataProcessing)
-      .catch(error => this.setState({ error, status: 'rejected' }));
-  };
-
-  dataProcessing = response => {
-    const { hits: dataArray, totalHits } = response.data;
-
-    if (!dataArray.length) {
-      this.setState({
-        status: 'rejected',
-        error: new Error('Try to change the request'),
-      });
-      return;
-    }
-    window.scrollBy({
-      top: document.body.clientHeight,
-      behavior: 'smooth',
-    });
-
-    const newData = dataArray.map(data => {
-      const {
-        id,
-        largeImageURL: imageURL,
-        webformatURL: src,
-        tags: alt,
-      } = data;
-      return { id, imageURL, src, alt };
-    });
-    return this.setState(({ data }) => {
-      return {
-        data: [...data, ...newData],
-        total: totalHits,
-        status: 'resolved',
-      };
-    });
-  };
-
-  handleSubmit = searchQuery => {
-    if (this.state.query !== searchQuery) {
-      this.setState({ query: searchQuery });
-    }
-    return;
-  };
-
-  handleLoadMore = () => {
-    this.setState(({ page }) => {
-      return { page: page + 1 };
-    });
+  onSearchButton = searchQuery => {
+    this.setState({ searchQuery, page: 1 });
   };
 
   toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+    this.setState(prevState => ({
+      showModal: !prevState.showModal,
+    }));
   };
-
-  clickOnImage = id => {
-    this.setState({ imgId: id });
+  onGalleryItemClick = (activeImgURL, activeImgAlt) => {
+    this.setState({
+      activeImgURL,
+      activeImgAlt,
+    });
     this.toggleModal();
   };
-
-  handleData = () => {
-    return this.state.data.find(img => img.id === this.state.imgId);
+  onLoadMore = event => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
-
   render() {
-    const { status, error, data, showModal, total } = this.state;
-
+    const { showModal, searchQuery, page } = this.state;
     return (
-      <div className="App">
-        <Searchbar onSubmit={this.handleSubmit} />
-        {data.length > 0 && (
-          <ImageGallery data={this.state.data} onClick={this.clickOnImage} />
-        )}
-        {status === 'resolved' && data.length > 0 && data.length < total && (
-          <>
-            <Button onClick={this.handleLoadMore} />
-          </>
-        )}
+      <div className={s.App}>
+        <Searchbar aria-label="Search" onSubmitClick={this.onSearchButton}>
+          <SearchIcon width="20" height="20" />
+        </Searchbar>
 
-        {status === 'pending' && (
-          <div className={s.Watch}>
-            <Watch
-              color="#00BFFF"
-              height={200}
-              width={200}
-              ariaLabel="loading"
-            />
-          </div>
-        )}
-
-        {status === 'rejected' && (
-          <div className={s.ImageGallery}>
-            <p>{`Something went wrong! ${error}`}</p>
-          </div>
-        )}
+        <ImageGallery
+          searchQuery={searchQuery}
+          page={page}
+          onGalleryItemClick={this.onGalleryItemClick}
+        >
+          <Button onLoadMore={this.onLoadMore} />
+        </ImageGallery>
 
         {showModal && (
-          <Modal onClose={this.toggleModal}>
-            <img src={this.handleData().imageURL} alt={this.handleData().alt} />
-          </Modal>
+          <Modal
+            onClose={this.toggleModal}
+            activeImgURL={this.state.activeImgURL}
+            activeImgAlt={this.state.activeImgAlt}
+          ></Modal>
         )}
+        <ToastContainer
+          closeButton={false}
+          position="bottom-right"
+          autoClose={3000}
+        />
       </div>
     );
   }
