@@ -3,10 +3,10 @@ import axios from 'axios';
 const ServiceAPI = (q, page) => {
   const options = {
     params: {
-      key: 'e900ddd99edc3affd146f1905e638fd1',
+      key: '25182566-6d97045846fa1b6cae2a84492',
       image_type: 'photo',
       orientation: 'horizontal',
-      safesearch: false,
+      safesearch: true,
       per_page: 12,
       q,
       page,
